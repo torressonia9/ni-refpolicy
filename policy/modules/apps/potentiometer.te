@@ -1,5 +1,32 @@
-policy_module(potentiometer, 1.2.0)
+policy_module(potentiometer, 1.0.0)
+##line above indicates to the compiler that we are using a reference policy and pulls in a lot of standard require
+## lines so we don't have to specify all the standard classes in our specification.
+##policy_module takes two parameters - policy name, and version
 
+#Declarations
+type_potentiometer_t;
+type potentiometer_exec_t;
+domain_type(potentiometer_t)
+init_daemon_domain(potentiomter_t, potentiometer_exec_t)
+## these lines define the domain type of the running process and the type to be used on the file_context. It also calls
+##an interface that says when init runs potentiomter_exec_t it should transition to potentiometer_t
+
+#pid files
+type potentiometer_var_run_t;
+files_pid_file(potentiometer_var_run_t)
+##This declares the type of the pid file
+
+#local policy
+files_read_etc_files(potentiometer_t)
+libs_use_ld_so(potentiometer_t)
+libs_use_shared_libs(potentiometer_t)
+miscfiles_read_localization(potentiometer_t)
+##The above makes use of some macros instead of using allow rules
+##More macros can be found at /etc/selinux/refpolicy/include
+
+#allow internal communication using fifo and unix sockets
+allow potentiometer_t self:fifo_file{read write};
+allow potentiometer_t self:unix_stream_socket create_stream_socket_perms;
 # Attribute of user applications
 attribute application_domain_type;
 
