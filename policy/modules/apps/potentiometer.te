@@ -21,27 +21,31 @@ files_read_etc_files(potentiometer_t)
 libs_use_ld_so(potentiometer_t)
 libs_use_shared_libs(potentiometer_t)
 miscfiles_read_localization(potentiometer_t)
+logging_send_syslog_msg(potentiometer_t)
 ##The above makes use of some macros instead of using allow rules
 ##More macros can be found at /etc/selinux/refpolicy/include
 
 #allow internal communication using fifo and unix sockets
 allow potentiometer_t self:fifo_file{read write};
 allow potentiometer_t self:unix_stream_socket create_stream_socket_perms;
-# Attribute of user applications
-attribute application_domain_type;
+# pid file
+allow potentiometer_t potentiometer_var_run_t:file manage_file_perms;
+allow potentiometer_t potentiometer_var_run_t:sock_file manage_file_perms;
+allow potentiometer_t potentiometer_var_run_t:dir rw_dir_perms;
+allow potentiometer_t self:unix_dgram_socket create_socket_perms;
+files_pid_filetrans(potentiometer_t,potentiometer_var_run_t, { file sock_file })
 
-# Executables to be run by user
-attribute application_exec_type;
+## Networking basics (adjustment needed!)
+sysnet_dns_name_resolve(potentiometer_t)
+corenet_tcp_sendrecv_all_if(potentiometer_t)
+corenet_tcp_sendrecv_all_nodes(potentiometer_t)
+corenet_tcp_sendrecv_all_ports(potentiometer_t)
+corenet_non_ipsec_sendrecv(potentiometer_t)
+corenet_tcp_connect_http_port(potentiometer_t)
+#corenet_tcp_connect_all_ports(potentiometer_t)
+## if it is a network daemon, consider these:
+#corenet_tcp_bind_all_ports(potentiometer_t)
+#corenet_tcp_bind_all_nodes(potentiometer_t)
+allow potentiometer_t self:tcp_socket { listen accept };
 
-optional_policy(`
-	cron_sigchld(application_domain_type)
-')
 
-optional_policy(`
-	ssh_sigchld(application_domain_type)
-	ssh_rw_stream_sockets(application_domain_type)
-')
-
-optional_policy(`
-	sudo_sigchld(application_domain_type)
-')
