@@ -7,7 +7,7 @@ policy_module(potentiometer, 1.0.0)
 type_potentiometer_t;
 type potentiometer_exec_t;
 domain_type(potentiometer_t)
-init_daemon_domain(potentiomter_t, potentiometer_exec_t)
+init_daemon_domain(potentiometer_t, potentiometer_exec_t)
 ## these lines define the domain type of the running process and the type to be used on the file_context. It also calls
 ##an interface that says when init runs potentiomter_exec_t it should transition to potentiometer_t
 
