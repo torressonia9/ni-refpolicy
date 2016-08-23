@@ -22,8 +22,13 @@ libs_use_ld_so(potentiometer_t)
 libs_use_shared_libs(potentiometer_t)
 miscfiles_read_localization(potentiometer_t)
 logging_send_syslog_msg(potentiometer_t)
+term_dontaudit_getattr_pty_dirs(potentiometer_t)
+dev_rw_generic_usb_dev(potentiometer_t)
+files_read_etc_runtime_files(potentiometer_t)
 ##The above makes use of some macros instead of using allow rules
 ##More macros can be found at /etc/selinux/refpolicy/include
+##A good idea is to use grep to find rules that match in the interface tools 
+##grep -r " devpts_t:chr_file" /usr/share/selinux/devel/include/
 
 #allow internal communication using fifo and unix sockets
 allow potentiometer_t self:fifo_file{read write};
