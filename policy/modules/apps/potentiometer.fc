@@ -1,1 +1,5 @@
-# No application file contexts.
+##File contexts file
+/usr/sbin/potentiometer       --      gen_context(system_u:object_r:potentiometer_exec_t,s0)
+/var/run/potentiometer\.pid     --      gen_context(system_u:object_r:potentiometer_var_run_t,s0)
+/var/run/potentiometer\.pub     --      gen_context(system_u:object_r:potentiometer_var_run_t,s0)
+/var/run/potentiometer\.comm    -s      gen_context(system_u:object_r:potentiometer_var_run_t,s0)
