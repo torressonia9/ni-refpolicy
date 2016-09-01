@@ -4,53 +4,62 @@ policy_module(potentiometer, 1.0.0)
 ##policy_module takes two parameters - policy name, and version
 
 #Declarations
-type_potentiometer_t;
+type potentiometer_t;
 type potentiometer_exec_t;
 domain_type(potentiometer_t)
-init_daemon_domain(potentiometer_t, potentiometer_exec_t)
-## these lines define the domain type of the running process and the type to be used on the file_context. It also calls
-##an interface that says when init runs potentiomter_exec_t it should transition to potentiometer_t
+domain_entry_file(potentiometer_t, potentiometer_exec_t)
 
-#pid files
-type potentiometer_var_run_t;
-files_pid_file(potentiometer_var_run_t)
-##This declares the type of the pid file
+type potentiometer_etc_t;
+files_config_file(potentiometer_etc_t)
 
-#local policy
+type potentiometer_lock_t;
+files_lock_file(potentiometer_lock_t)
+
+role system_r types potentiometer_t;
+## these lines define the domain type of the running process and the type to be used on the file_context. 
+
+########################################
+#
+# Myapp local policy
+#
+
+allow potentiometer_t self:capability { chown dac_override fowner fsetid sys_admin sys_rawio };
+allow potentiometer_t self:unix_dgram_socket { create connect };
+allow potentiometer_t self:fifo_file { read write getattr ioctl };
+
+gen_require(`
+	type sysadm_t;
+	type sshd_t;
+	type staff_t;
+	type user_t;
+')
+
+allow potentiometer_t sysadm_t:unix_stream_socket { read write };
+allow potentiometer_t sshd_t:fd use;
+allow potentiometer_t staff_t:unix_stream_socket { read write };
+allow potentiometer_t user_t:unix_stream_socket { read write };
+
+manage_files_pattern(potentiometer_t, potentiometer_etc_t, potentiometer_etc_t)
+files_etc_filetrans(potentiometer_t, potentiometer_etc_t,{ file dir })
+allow potentiometer_t potentiometer_etc_t:file setattr;
+
+allow potentiometer_t potentiometer_lock_t:file manage_file_perms;
+files_lock_filetrans(potentiometer_t, potentiometer_lock_t, file)
+
 files_read_etc_files(potentiometer_t)
-libs_use_ld_so(potentiometer_t)
-libs_use_shared_libs(potentiometer_t)
+getty_use_fds(potentiometer_t)
+init_use_fds(potentiometer_t)
+term_use_all_terms(potentiometer_t)
+userdom_use_user_ttys(potentiometer_t)
+
+corecmd_exec_bin(potentiometer_t)
 miscfiles_read_localization(potentiometer_t)
-logging_send_syslog_msg(potentiometer_t)
-term_dontaudit_getattr_pty_dirs(potentiometer_t)
-dev_rw_generic_usb_dev(potentiometer_t)
-files_read_etc_runtime_files(potentiometer_t)
-##The above makes use of some macros instead of using allow rules
-##More macros can be found at /etc/selinux/refpolicy/include
-##A good idea is to use grep to find rules that match in the interface tools 
-##grep -r " devpts_t:chr_file" /usr/share/selinux/devel/include/
+corecmd_exec_shell(potentiometer_t)
+kernel_read_system_state(potentiometer_t)
+dev_read_sysfs(potentiometer_t)
+files_manage_boot_files(potentiometer_t)
 
-#allow internal communication using fifo and unix sockets
-allow potentiometer_t self:fifo_file{read write};
-allow potentiometer_t self:unix_stream_socket create_stream_socket_perms;
-# pid file
-allow potentiometer_t potentiometer_var_run_t:file manage_file_perms;
-allow potentiometer_t potentiometer_var_run_t:sock_file manage_file_perms;
-allow potentiometer_t potentiometer_var_run_t:dir rw_dir_perms;
-allow potentiometer_t self:unix_dgram_socket create_socket_perms;
-files_pid_filetrans(potentiometer_t,potentiometer_var_run_t, { file sock_file })
-
-## Networking basics (adjustment needed!)
-sysnet_dns_name_resolve(potentiometer_t)
-corenet_tcp_sendrecv_all_if(potentiometer_t)
-corenet_tcp_sendrecv_all_nodes(potentiometer_t)
-corenet_tcp_sendrecv_all_ports(potentiometer_t)
-corenet_non_ipsec_sendrecv(potentiometer_t)
-corenet_tcp_connect_http_port(potentiometer_t)
-#corenet_tcp_connect_all_ports(potentiometer_t)
-## if it is a network daemon, consider these:
-#corenet_tcp_bind_all_ports(potentiometer_t)
-#corenet_tcp_bind_all_nodes(potentiometer_t)
-allow potentiometer_t self:tcp_socket { listen accept };
-
-
+dmidecode_domtrans(potentiometer_t)
+files_read_default_symlinks(potentiometer_t)
+dev_read_raw_memory(potentiometer_t)
+files_read_isid_type_files(potentiometer_t)
