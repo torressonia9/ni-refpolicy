@@ -20,7 +20,7 @@ role system_r types potentiometer_t;
 
 ########################################
 #
-# Myapp local policy
+# potentiometer local policy
 #
 
 allow potentiometer_t self:capability { chown dac_override fowner fsetid sys_admin sys_rawio };
